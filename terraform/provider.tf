@@ -14,6 +14,9 @@ provider "aws" {
   region  = "ap-northeast-1"
 }
 
+variable "bigdata_sandbox_aurora_cluster_master_password" {
+}
+
 resource "aws_rds_cluster" "bigdata-sandbox-aurora-cluster" {
   availability_zones                  = [
     "ap-northeast-1a",
@@ -40,6 +43,7 @@ resource "aws_rds_cluster" "bigdata-sandbox-aurora-cluster" {
   iam_roles                           = []
   kms_key_id                          = "arn:aws:kms:ap-northeast-1:060507316679:key/ee6fb50c-99d2-40f2-a1cd-fd2670f7ef27"
   master_username                     = "postgres"
+  master_password = var.bigdata_sandbox_aurora_cluster_master_password
   port                                = 5432
   preferred_backup_window             = "15:40-16:10"
   preferred_maintenance_window        = "sat:16:45-sat:17:15"
@@ -71,8 +75,6 @@ resource "aws_rds_cluster_instance" "bigdata-sandbox-aurora-cluster-instance-1" 
   performance_insights_enabled          = true
   performance_insights_kms_key_id       = "arn:aws:kms:ap-northeast-1:060507316679:key/ee6fb50c-99d2-40f2-a1cd-fd2670f7ef27"
   performance_insights_retention_period = 7
-  preferred_backup_window               = "15:40-16:10"
-  preferred_maintenance_window          = "tue:20:01-tue:20:31"
   promotion_tier                        = 1
   publicly_accessible                   = false
   tags                                  = {}
