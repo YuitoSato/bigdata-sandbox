@@ -49,8 +49,6 @@ resource "aws_rds_cluster" "bigdata-sandbox-aurora-cluster" {
   preferred_maintenance_window        = "sat:16:45-sat:17:15"
   skip_final_snapshot                 = true
   storage_encrypted                   = true
-  tags                                = {}
-  tags_all                            = {}
   vpc_security_group_ids              = [
     "sg-081dcc68bf2202452",
   ]
@@ -77,8 +75,6 @@ resource "aws_rds_cluster_instance" "bigdata-sandbox-aurora-cluster-instance-1" 
   performance_insights_retention_period = 7
   promotion_tier                        = 1
   publicly_accessible                   = false
-  tags                                  = {}
-  tags_all                              = {}
 
   timeouts {}
 }
