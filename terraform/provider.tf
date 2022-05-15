@@ -31,7 +31,7 @@ resource "aws_rds_cluster" "bigdata-sandbox-aurora-cluster" {
   ]
   copy_tags_to_snapshot               = true
   database_name                       = "bigdata_sandbox_aurora_db"
-  db_cluster_parameter_group_name     = "default.aurora-postgresql13"
+  db_cluster_parameter_group_name     = "bigdata-sandbox-aurora-cluster-parameter-group"
   db_subnet_group_name                = "default-vpc-0a2a725f51e785674"
   deletion_protection                 = false
   enable_http_endpoint                = false
@@ -62,7 +62,7 @@ resource "aws_rds_cluster_instance" "bigdata-sandbox-aurora-cluster-instance-1" 
   ca_cert_identifier                    = "rds-ca-2019"
   cluster_identifier                    = "bigdata-sandbox-aurora-cluster"
   copy_tags_to_snapshot                 = false
-  db_parameter_group_name               = "default.aurora-postgresql13"
+  db_parameter_group_name               = "bigdata-sandbox-aurora-db-instance-parameter-group"
   db_subnet_group_name                  = "default-vpc-0a2a725f51e785674"
   engine                                = "aurora-postgresql"
   engine_version                        = "13.6"
@@ -78,3 +78,4 @@ resource "aws_rds_cluster_instance" "bigdata-sandbox-aurora-cluster-instance-1" 
 
   timeouts {}
 }
+
