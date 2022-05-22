@@ -83,7 +83,7 @@ resource "aws_route53_zone" "bigdata-sandbox-internal-route53" {
   name = "bigdata-sandbox-internal.com"
 
   vpc {
-    vpc_id = "bigdata-sandbox-internal"
+    vpc_id = "vpc-0a2a725f51e785674"
   }
 }
 
@@ -91,6 +91,7 @@ resource "aws_route53_record" "bigdata-sandbox-internal-aurora-route53-record" {
   zone_id = aws_route53_zone.bigdata-sandbox-internal-route53.zone_id
   name = "aurora-write.bigdata-sandbox-internal.com"
   type = "CNAME"
+  ttl = 300
 
   records = [
     aws_rds_cluster.bigdata-sandbox-aurora-cluster.endpoint,
