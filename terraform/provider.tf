@@ -60,7 +60,7 @@ resource "aws_rds_cluster_instance" "bigdata-sandbox-aurora-cluster-instance-1" 
   auto_minor_version_upgrade            = true
   availability_zone                     = "ap-northeast-1c"
   ca_cert_identifier                    = "rds-ca-2019"
-  cluster_identifier                    = "bigdata-sandbox-aurora-cluster"
+  cluster_identifier                    = aws_rds_cluster.bigdata-sandbox-aurora-cluster.id
   copy_tags_to_snapshot                 = false
   db_parameter_group_name               = "bigdata-sandbox-aurora-db-instance-parameter-group"
   db_subnet_group_name                  = "default-vpc-0a2a725f51e785674"
@@ -79,3 +79,84 @@ resource "aws_rds_cluster_instance" "bigdata-sandbox-aurora-cluster-instance-1" 
   timeouts {}
 }
 
+resource "aws_route53_zone" "bigdata-sandbox-internal-route53" {
+  name = "bigdata-sandbox-internal.com"
+
+  vpc {
+    vpc_id = "bigdata-sandbox-internal"
+  }
+}
+
+resource "aws_route53_record" "bigdata-sandbox-internal-aurora-route53-record" {
+  zone_id = aws_route53_zone.bigdata-sandbox-internal-route53.zone_id
+  name = "aurora-write.bigdata-sandbox-internal.com"
+  type = "CNAME"
+
+  records = [
+    aws_rds_cluster.bigdata-sandbox-aurora-cluster.endpoint,
+  ]
+}
+
+resource "aws_dms_replication_instance" "bigdata-sandbox-aurora2instance-rpl-instance" {
+  allocated_storage                = 50
+  auto_minor_version_upgrade       = true
+  availability_zone                = "ap-northeast-1a"
+  engine_version                   = "3.4.6"
+  kms_key_arn                      = "arn:aws:kms:ap-northeast-1:060507316679:key/21d148da-046c-45ee-a60b-0a3f3b8888ad"
+  multi_az                         = false
+  preferred_maintenance_window     = "sun:11:33-sun:12:03"
+  publicly_accessible              = false
+  replication_instance_class       = "dms.t3.small"
+  replication_instance_id          = "bigdata-sandbox-aurora2instance-rpl-instance"
+  replication_subnet_group_id      = "default-vpc-0a2a725f51e785674"
+  tags                             = {
+    "description" = "bigdata-sandbox-aurora2instance-rpl-instance"
+  }
+  tags_all                         = {
+    "description" = "bigdata-sandbox-aurora2instance-rpl-instance"
+  }
+  vpc_security_group_ids           = [
+    "sg-081dcc68bf2202452",
+  ]
+}
+
+resource "aws_dms_endpoint" "bigdata-sandbox-aurora-cluster-source-endpoint" {
+  database_name = "bigdata_sandbox_aurora_db"
+  endpoint_id   = "bigdata-sandbox-aurora-cluster-source-endpoint"
+  endpoint_type = "source"
+  engine_name   = "aurora-postgresql"
+  kms_key_arn   = "arn:aws:kms:ap-northeast-1:060507316679:key/21d148da-046c-45ee-a60b-0a3f3b8888ad"
+  port          = 5432
+  server_name   = aws_rds_cluster.bigdata-sandbox-aurora-cluster.endpoint
+  ssl_mode      = "none"
+  tags          = {}
+  tags_all      = {}
+  username      = "postgres"
+  password      = var.bigdata_sandbox_aurora_cluster_master_password
+}
+
+resource "aws_dms_endpoint" "bigdata-sandbox-aurora2snowflake-s3-target-endpoint" {
+  endpoint_id                 = "bigdata-sandbox-aurora2snowflake-s3-target-endpoint"
+  endpoint_type               = "target"
+  engine_name                 = "s3"
+  extra_connection_attributes = "bucketFolder=aurora2snowflake;bucketName=bigdata-sandbox-aurora2snowflake-s3;compressionType=NONE;csvDelimiter=,;csvRowDelimiter=\\n;datePartitionEnabled=false;"
+  ssl_mode                    = "none"
+  tags                        = {}
+  tags_all                    = {}
+
+  s3_settings {
+    bucket_folder                    = "aurora2snowflake"
+    bucket_name                      = "bigdata-sandbox-aurora2snowflake-s3"
+    compression_type                 = "NONE"
+    csv_delimiter                    = ","
+    csv_row_delimiter                = "\\n"
+    date_partition_enabled           = false
+    parquet_timestamp_in_millisecond = false
+    service_access_role_arn          = "arn:aws:iam::060507316679:role/bigdata-sandbox-aurora2snowflake-dms-role"
+  }
+}
+
+
+#
+#resource "aws_dms_replication_task" "bigdata-sandbox-aurora2snowflake-dms-task" {
+#}
