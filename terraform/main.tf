@@ -122,7 +122,7 @@ resource "aws_dms_replication_instance" "bigdata-sandbox-aurora2instance-rpl-ins
 }
 
 resource "aws_dms_endpoint" "bigdata-sandbox-aurora-cluster-source-endpoint" {
-  database_name = "bigdata_sandbox_aurora_db"
+  database_name = "postgres"
   endpoint_id   = "bigdata-sandbox-aurora-cluster-source-endpoint"
   endpoint_type = "source"
   engine_name   = "aurora-postgresql"
@@ -396,4 +396,58 @@ resource "aws_dms_replication_task" "bigdata-sandbox-aurora2snowflake-dms-task" 
   tags                      = {}
   tags_all                  = {}
   target_endpoint_arn       = aws_dms_endpoint.bigdata-sandbox-aurora2snowflake-s3-target-endpoint.endpoint_arn
+}
+
+variable "bigdata_sandbox_redshift_cluster_master_password" {
+}
+
+
+resource "aws_redshift_cluster" "bigdata-sandbox-redshift-cluster" {
+  allow_version_upgrade               = true
+  automated_snapshot_retention_period = 1
+  availability_zone                   = aws_rds_cluster_instance.bigdata-sandbox-aurora-cluster-instance-1.availability_zone
+  cluster_identifier                  = "bigdata-sandbox-redshift-cluster"
+  cluster_parameter_group_name        = "default.redshift-1.0"
+  cluster_public_key                  = <<-EOT
+        ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCADNz+PatyJabDqka6+0PW7DR0+3brJokYP/buCVpp15Nct8G52Veeam7GNRq4ZKu086X17rBGvc0sOS3g8OXnSGZRFF95sv5CjY8wVccY2k3TwIeSnBcbHYaf4iZAY3rGsOUuhxY8RhLNew6USqY6M01ra695Oq3BPXWGGgIXWsItgT6R8FWDS0plSuRMtMhqseZRSfXbJFUtLTIswY1EieiHvbtsHwCcAabStLHs7Cb5CUTG2qEhYvDoxhsd+WhTvHUzq6Rsosc2OJ33Oz3Bd5OgENk53LV5zfkB0bjZcIigt25RZBPAUaaFpHy1umwWwNDW1XmlM6U+X5ZkyT45 Amazon-Redshift
+    EOT
+  cluster_revision_number             = "38698"
+  cluster_security_groups             = []
+  cluster_subnet_group_name           = "default"
+  cluster_type                        = "single-node"
+  cluster_version                     = "1.0"
+  database_name                       = "dev"
+  encrypted                           = false
+  endpoint                            = "bigdata-sandbox-redshift-cluster.cibmfapctomn.ap-northeast-1.redshift.amazonaws.com:5439"
+  enhanced_vpc_routing                = false
+  iam_roles                           = [
+    "arn:aws:iam::060507316679:role/aws-service-role/redshift.amazonaws.com/AWSServiceRoleForRedshift",
+    "arn:aws:iam::060507316679:role/bigdata-sandbox-redshift-role",
+  ]
+  master_username                     = "redshift"
+  node_type                           = "dc2.large"
+  number_of_nodes                     = 1
+  port                                = 5439
+  preferred_maintenance_window        = "tue:17:00-tue:17:30"
+  publicly_accessible                 = false
+  skip_final_snapshot                 = true
+  tags                                = {}
+  tags_all                            = {}
+  vpc_security_group_ids              = [
+    "sg-081dcc68bf2202452",
+  ]
+  master_password = var.bigdata_sandbox_redshift_cluster_master_password
+
+  logging {
+    enable = false
+  }
+
+  timeouts {}
+}
+
+resource "aws_secretsmanager_secret" "bigdata-sandbox-aurora-cluster-secret" {
+  description      = "bigdata-sandbox-aurora-cluster-secret"
+  name             = "bigdata-sandbox-aurora-cluster-secret"
+  force_overwrite_replica_secret = false
+  recovery_window_in_days = 30
 }
