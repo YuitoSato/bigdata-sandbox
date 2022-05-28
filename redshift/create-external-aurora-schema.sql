@@ -1,3 +1,5 @@
+-- Secret Managerのaurora uriを書き換えること
+-- https://ap-northeast-1.console.aws.amazon.com/secretsmanager/home?region=ap-northeast-1#!/listSecrets/
 CREATE EXTERNAL SCHEMA aurora
 FROM POSTGRES
 DATABASE 'postgres'
